@@ -68,7 +68,7 @@ public class Main implements Runnable {
 	}
 
 	public float[][] translate(int x, int y, int z) {
-		float[][] trans = { { 1, 0, 0, x }, { 0, 1, 0, y }, { 0, 0, 1, z }, { 0, 0, 0, 0 } };
+		float[][] trans = { { 1, 0, 0, x }, { 0, 1, 0, y }, { 0, 0, 1, z }, { 0, 0, 0, 1 } };
 		return trans;
 	}
 
@@ -81,84 +81,31 @@ public class Main implements Runnable {
 
 		{
 			// SOUTH
-			cube.mesh.add(new Triangle(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f));
+			cube.mesh.add(new Triangle(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,0));
 
-			cube.mesh.add(new Triangle(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+			cube.mesh.add(new Triangle(0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,1));
 
 			// EAST
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f));
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,2));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,3));
 
 			// NORTH
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f));
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,4));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,5));
 
 			// WEST
-			cube.mesh.add(new Triangle(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f));
-			cube.mesh.add(new Triangle(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+			cube.mesh.add(new Triangle(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,6));
+			cube.mesh.add(new Triangle(0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,7));
 
 			// TOP
-			cube.mesh.add(new Triangle(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f));
-			cube.mesh.add(new Triangle(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f));
+			cube.mesh.add(new Triangle(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,8));
+			cube.mesh.add(new Triangle(0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,9));
 
 			// BOTTOM
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f));
-			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,10));
+			cube.mesh.add(new Triangle(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,11));
 
-		}
-		;
-
-//		// SOUTH
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 0.0f));
-//
-//		// EAST
-//
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 1.0f));
-//
-//		// NORTH
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 1.0f));
-//
-//		// WEST
-//
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 0.0f));
-//
-//		// TOP
-//
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 1.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 1.0f));
-//		cube.mesh.add(new Vertex(1.0f, 1.0f, 0.0f));
-//
-//		// BOTTOM
-//
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 1.0f));
-//		cube.mesh.add(new Vertex(0.0f, 0.0f, 0.0f));
-//		cube.mesh.add(new Vertex(1.0f, 0.0f, 0.0f));
+		};
 
 		float fNear = 0.1f;
 		float fFar = 1000.0f;
@@ -185,12 +132,6 @@ public class Main implements Runnable {
 			triangle.getVertex(2).z -= 0.5;
 		}
 
-//		for (Vertex vertex : cube.mesh) {
-//			vertex.x -= 0.5;
-//			vertex.y -= 0.5;
-//			vertex.z -= 0.5;
-//		}
-
 	}
 
 	public void drawVertex(Vertex vertex) {
@@ -216,26 +157,20 @@ public class Main implements Runnable {
 		case (0):
 			g.setColor(Color.RED);
 			break;
-		case (1):
+		case (2):
 			g.setColor(Color.BLUE);
 			break;
-		case (2):
+		case (4):
 			g.setColor(Color.YELLOW);
 			break;
-		case (3):
+		case (6):
 			g.setColor(Color.GREEN);
 			break;
-		case (4):
+		case (8):
 			g.setColor(Color.GRAY);
 			break;
-		case (5):
-			g.setColor(Color.ORANGE);
-			break;
-		case (6):
+		case (10):
 			g.setColor(Color.CYAN);
-			break;
-		default:
-			g.setColor(Color.PINK);
 			break;
 		}
 		g.fillPolygon(xPoints, yPoints, 3);
@@ -253,7 +188,6 @@ public class Main implements Runnable {
 		g = bs.getDrawGraphics();
 		g.clearRect(0, 0, windowWidth, windowHeight);
 
-		int counter = 0;
 		for (Triangle triangle : cube.mesh) {
 			Triangle rotationalTriangle = new Triangle();
 			Triangle projectedTriangle = new Triangle();
@@ -279,11 +213,11 @@ public class Main implements Runnable {
 					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(2), rotationZ(angle3)), 2);
 
 			translatedTriangle
-					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(0), translate(0, 0, 30)), 0);
+					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(0), translate(0, 0, 50)), 0);
 			translatedTriangle
-					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(1), translate(0, 0, 30)), 1);
+					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(1), translate(0, 0, 50)), 1);
 			translatedTriangle
-					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(2), translate(0, 0, 30)), 2);
+					.setVertex(dotProduct.DotMultiplication(rotationalTriangle.getVertex(2), translate(0, 0, 50)), 2);
 
 			Vertex normal = new Vertex();
 			Vertex line1 = new Vertex();
@@ -328,49 +262,26 @@ public class Main implements Runnable {
 				scaledTriangle.setVertex(dotProduct.MultY(scaledTriangle.getVertex(0), windowHeight / 2), 0);
 				scaledTriangle.setVertex(dotProduct.MultY(scaledTriangle.getVertex(1), windowHeight / 2), 1);
 				scaledTriangle.setVertex(dotProduct.MultY(scaledTriangle.getVertex(2), windowHeight / 2), 2);
-				drawTriangle(scaledTriangle, counter);
+				drawTriangle(scaledTriangle, triangle.getSideNumber());
 			}
-			counter++;
 		}
 
-//		for (Vertex vertex : cube.mesh) {
-//			Vertex projectedVertex = new Vertex();
-//			Vertex rotationalVertex = new Vertex();
-//			Vertex translatedVertex = new Vertex();
-//			Vertex scaledVertex = new Vertex();
-//			
-//			rotationalVertex = clone.deepClone(dotProduct.DotMultiplication(vertex, rotationX(angle1)));
-//			rotationalVertex = clone.deepClone(dotProduct.DotMultiplication(rotationalVertex, rotationY(angle2)));
-//			
-//			translatedVertex = clone.deepClone(dotProduct.DotMultiplication(rotationalVertex, translate(0, 0, 30)));
-//			
-//			projectedVertex = clone.deepClone(dotProduct.DotMultiplication(translatedVertex, projectionMatrix));
-//			
-//			scaledVertex = clone.deepClone(dotProduct.AddX(projectedVertex, 1));
-//			scaledVertex = clone.deepClone(dotProduct.AddY(scaledVertex, 1));
-//			
-//			scaledVertex = clone.deepClone(dotProduct.MultX(scaledVertex, windowWidth/2));
-//			scaledVertex = clone.deepClone(dotProduct.MultY(scaledVertex, windowHeight/2));
-//
-//			drawVertex(scaledVertex);
-//
-//		}
 		left = false;
 		angle1 += 0.025;
 		angle2 += 0.05;
 		angle3 += 0.0375;
-//		translate = 1000;
-//		if (left) {
-//			scaledNumber += 10;
-//		} else if (!left) {
-//			scaledNumber -= 10;
-//		}
-//
-//		if (scaledNumber > 400) {
-//			left = false;
-//		} else if (scaledNumber < 25) {
-//			left = true;
-//		}
+		
+		if (left) {
+			scaledNumber += 2;
+		} else if (!left) {
+			scaledNumber -= 2;
+		}
+
+		if (scaledNumber > 100) {
+			left = false;
+		} else if (scaledNumber < 90) {
+			left = true;
+		}
 		bs.show();
 		g.dispose();
 	}

@@ -4,11 +4,12 @@ public class Triangle{
 	
 	public Vertex[] triangle = new Vertex[3];
 	
-	
-	public Triangle(float v1X, float v1Y, float v1Z, float v2X, float v2Y, float v2Z, float v3X, float v3Y, float v3Z) {
+	int sideNumber;
+	public Triangle(float v1X, float v1Y, float v1Z, float v2X, float v2Y, float v2Z, float v3X, float v3Y, float v3Z, int sideNumber) {
 		triangle[0] = new Vertex(v1X, v1Y, v1Z);
 		triangle[1]= new Vertex(v2X, v2Y, v2Z);
 		triangle[2] = new Vertex(v3X, v3Y, v3Z);
+		this.sideNumber = sideNumber;
 	}
 	
 	public Triangle() {
@@ -22,6 +23,9 @@ public class Triangle{
 	}
 	public void setVertex(Vertex vertex, int value) {
 		triangle[value] = vertex;
+	}
+	public int getSideNumber() {
+		return sideNumber;
 	}
 	
 }
