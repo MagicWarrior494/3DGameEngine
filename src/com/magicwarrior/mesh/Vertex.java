@@ -17,5 +17,11 @@ public class Vertex {
 		this.z = 0;
 		this.w = 1;
 	}
+	public Vertex(String x, String y, String z) {
+		this.x = Float.parseFloat(x);
+		this.y = Float.parseFloat(y);
+		this.z = Float.parseFloat(z);
+		this.w = 1;
+	}
 
 }

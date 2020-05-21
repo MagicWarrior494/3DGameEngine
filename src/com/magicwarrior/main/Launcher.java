@@ -5,5 +5,4 @@ public class Launcher {
 		Main main = new Main("3D Game Engine", 1200, 1000);
 		main.start();
 	}
-	
 }
