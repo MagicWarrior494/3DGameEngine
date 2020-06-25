@@ -31,12 +31,12 @@ public class FileReader {
 
 		triangle = list.stream().filter(l -> l.startsWith("F")).collect(Collectors.toList());
 		vertex = list.stream().filter(g -> g.startsWith("V")).collect(Collectors.toList());
-
+		
 		for (String t : triangle) {
 			String[] vertNum = t.split(" ");
-
-			Triangle temp = new Triangle(vertex.get(Integer.parseInt(vertNum[1]) - 1),
-					vertex.get(Integer.parseInt(vertNum[2]) - 1), vertex.get(Integer.parseInt(vertNum[3]) - 1));
+			
+			Triangle temp = new Triangle(vertex.get((Integer.parseInt(vertNum[1]) - 1)/1),
+					vertex.get((Integer.parseInt(vertNum[2]) - 1)/1), vertex.get((Integer.parseInt(vertNum[3]) - 1)/1));
 
 			mesh.mesh.add(temp);
 		}
@@ -44,6 +44,7 @@ public class FileReader {
 	}
 
 	public Mesh getMesh() {
+		System.out.println(mesh.getSize());
 		return mesh;
 	}
 }

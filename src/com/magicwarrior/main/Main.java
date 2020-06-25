@@ -34,9 +34,9 @@ public class Main implements Runnable {
 	public static float xChange = 0, yChange = 0;
 	public static float currentX = 0, currentY = 0;
 
-	double angle1 = 0;
-	double angle2 = 0;
-	double angle3 = 0;
+	float angle1 = 0;
+	float angle2 = 0;
+	float angle3 = 0;
 	int scaledNumber = 0;
 	int translate = 0;
 
@@ -47,43 +47,25 @@ public class Main implements Runnable {
 
 	boolean left = true;
 
-	Cloner clone;
 	private String title;
 	static public int windowWidth, windowHeight;
 	float aspectRatio = 1.2f;
 	int tick = 0;
 
-	Vertex camera = new Vertex();
+	Vertex vCamera = new Vertex();
+	Vertex vUp, vTarget, vLookDir, vCameraRay, light_direction, vOffsetView;
+	
+	float[][] matRotZ = new float[4][4], matRotX = new float[4][4], matRotY = new float[4][4],
+			matTrans = new float[4][4], matWorld = new float[4][4], matCamera = new float[4][4],
+			matView = new float[4][4],
+			matProj;
 
 	float fTheta = 0.0f;
 
 	public Main(String title, int windowWidth, int windowHeight) {
 		this.title = title;
-		this.windowHeight = windowHeight;
-		this.windowWidth = windowWidth;
-	}
-
-	public float[][] rotationZ(double angle) {
-		float[][] rotation = { { (float) Math.cos(angle), (float) -Math.sin(angle), 0, 0 },
-				{ (float) Math.sin(angle), (float) Math.cos(angle), 0, 0 }, { 0, 0, 1, 0 }, { 0, 0, 0, 0 } };
-		return rotation;
-	}
-
-	public float[][] rotationX(double angle) {
-		float[][] rotation = { { 1, 0, 0, 0 }, { 0, (float) Math.cos(angle), (float) -Math.sin(angle), 0 },
-				{ 0, (float) Math.sin(angle), (float) Math.cos(angle), 0 }, { 0, 0, 0, 0 } };
-		return rotation;
-	}
-
-	public float[][] rotationY(double angle) {
-		float[][] rotation = { { (float) Math.cos(angle), 0, (float) -Math.sin(angle), 0 }, { 0, 1, 0, 0 },
-				{ (float) Math.sin(angle), 0, (float) Math.cos(angle), 0 }, { 0, 0, 0, 0 } };
-		return rotation;
-	}
-
-	public float[][] translate(int x, int y, int z) {
-		float[][] trans = { { 1, 0, 0, x }, { 0, 1, 0, y }, { 0, 0, 1, z }, { 0, 0, 0, 1 } };
-		return trans;
+		Main.windowHeight = windowHeight;
+		Main.windowWidth = windowWidth;
 	}
 
 	public void init() {
@@ -94,8 +76,7 @@ public class Main implements Runnable {
 		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "teapot.obj");
 		fileReader.readFile(myObj);
 
-		display.getCanves().addMouseListener(eventListener);
-		display.getCanves().addMouseMotionListener(eventListener);
+		display.getFrame().addKeyListener(eventListener);
 		cube = fileReader.getMesh();
 
 	}
@@ -113,17 +94,17 @@ public class Main implements Runnable {
 		Vertex v2 = triangle.getVertex(1);
 		Vertex v3 = triangle.getVertex(2);
 
-		g.setColor(Color.BLACK);
-		drawLine(v1.x, v1.y, v2.x, v2.y);
-		drawLine(v2.x, v2.y, v3.x, v3.y);
-		drawLine(v3.x, v3.y, v1.x, v1.y);
+//		g.setColor(Color.BLACK);
+//		drawLine(v1.x, v1.y, v2.x, v2.y);
+//		drawLine(v2.x, v2.y, v3.x, v3.y);
+//		drawLine(v3.x, v3.y, v1.x, v1.y);
 
 		int[] xPoints = { (int) v1.x, (int) v2.x, (int) v3.x };
 		int[] yPoints = { (int) v1.y, (int) v2.y, (int) v3.y };
 
-		//g.setColor(triangle.color);
+		g.setColor(new Color(triangle.color, triangle.color, triangle.color));
 
-		//g.fillPolygon(xPoints, yPoints, 3);
+		g.fillPolygon(xPoints, yPoints, 3);
 
 	}
 
@@ -134,92 +115,105 @@ public class Main implements Runnable {
 			display.getCanves().createBufferStrategy(3);
 			return;
 		}
+		
+		matProj = MatrixMath.Matrix_MakeProjection(90.0f, windowWidth / windowHeight, 0.1f, 1000.0f);
+		
+		matRotZ = MatrixMath.Matrix_MakeRotationZ(angle3);
+		matRotX = MatrixMath.Matrix_MakeRotationX(angle1);
 
-		g = bs.getDrawGraphics();
-		g.clearRect(0, 0, windowWidth, windowHeight);
+		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 16.0f);
 
-		List<Triangle> triangleRaster = new ArrayList<>();
+		matWorld = MatrixMath.Matrix_MakeIdentity();
+		matWorld = MatrixMath.Matrix_MultiplyMatrix(matRotZ, matRotX);
+		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matTrans);
+
+		vLookDir = new Vertex(0, 0, 1);
+		vUp = new Vertex(0, 1, 0);
+		vTarget = MatrixMath.VertexAdd(vCamera, vLookDir);
+
+		matCamera = MatrixMath.PointAt(vCamera, vTarget, vUp);
+
+		// Make view matrix from camera
+		matView = MatrixMath.QuickInverse(matCamera);
 
 		TreeMap<Float, Triangle> triangleRasterTree = new TreeMap<>();
 
-		for (Triangle triangle : cube.mesh) {
-			Triangle projectedTriangle = new Triangle();
-			Triangle scaledTriangle = new Triangle();
-			Triangle translatedTriangle = new Triangle();
+		for (Triangle tri : cube.mesh) {
+			Triangle triProjected = new Triangle();
+			Triangle triTransformed = new Triangle();
+			Triangle triViewed = new Triangle();
 
-			translatedTriangle
-					.setVertex(MatrixMath.worldUpdate(triangle.getVertex(0), angle1, angle2, angle3, 80), 0);
-			translatedTriangle
-					.setVertex(MatrixMath.worldUpdate(triangle.getVertex(1), angle1, angle2, angle3, 80), 1);
-			translatedTriangle
-					.setVertex(MatrixMath.worldUpdate(triangle.getVertex(2), angle1, angle2, angle3, 80), 2);
+			triTransformed.setVertex(MatrixMath.MultiplyVertex(matWorld, tri.getVertex(0)), 0);
+			triTransformed.setVertex(MatrixMath.MultiplyVertex(matWorld, tri.getVertex(1)), 1);
+			triTransformed.setVertex(MatrixMath.MultiplyVertex(matWorld, tri.getVertex(2)), 2);
 
 			Vertex normal = new Vertex();
 			Vertex line1 = new Vertex();
 			Vertex line2 = new Vertex();
 
-			line1 = MatrixMath.subtractVector(translatedTriangle.getVertex(1), translatedTriangle.getVertex(0));
-			line2 = MatrixMath.subtractVector(translatedTriangle.getVertex(2), translatedTriangle.getVertex(0));
+			line1 = MatrixMath.subtractVector(triTransformed.getVertex(1), triTransformed.getVertex(0));
+			line2 = MatrixMath.subtractVector(triTransformed.getVertex(2), triTransformed.getVertex(0));
 
-			normal.x = line1.y * line2.z - line1.z * line2.y;
-			normal.y = line1.z * line2.x - line1.x * line2.z;
-			normal.z = line1.x * line2.y - line1.y * line2.x;
+			normal = MatrixMath.CrossProduct(line1, line2);
 
-			float l = (float) Math.sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+			normal = MatrixMath.Normalise(normal);
 
-			normal.x /= l;
-			normal.y /= l;
-			normal.z /= l;
+			vCameraRay = MatrixMath.subtractVector(triTransformed.getVertex(0), vCamera);
 
-			if (normal.x * (translatedTriangle.getVertex(0).x - camera.x)
-					+ normal.y * (translatedTriangle.getVertex(0).y - camera.y)
-					+ normal.z * (translatedTriangle.getVertex(0).z - camera.z) < 0.0f) {
+			if (MatrixMath.DotProduct(normal, vCameraRay) < 0.0f) {
 
-				Vertex light_direction = new Vertex(0.0f, 0.0f, -1.0f);
-				float b = (float) Math.sqrt(light_direction.x * light_direction.x
-						+ light_direction.y * light_direction.y + light_direction.z * light_direction.z);
+				light_direction = new Vertex(0.0f, 1.0f, -1.0f);
+				light_direction = MatrixMath.Normalise(light_direction);
 
-				light_direction.x /= b;
-				light_direction.y /= b;
-				light_direction.z /= b;
+				float dp = Math.max(0.1f, MatrixMath.DotProduct(light_direction, normal));
 
-				float dp = normal.x * light_direction.x + normal.y * light_direction.y + normal.z * light_direction.z;
+				triTransformed.color = dp;
 
-				projectedTriangle.setVertex(
-						dotProduct.DotMultiplication(translatedTriangle.getVertex(0), MatrixMath.project()), 0);
-				projectedTriangle.setVertex(
-						dotProduct.DotMultiplication(translatedTriangle.getVertex(1), MatrixMath.project()), 1);
-				projectedTriangle.setVertex(
-						dotProduct.DotMultiplication(translatedTriangle.getVertex(2), MatrixMath.project()), 2);
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(0)), 0);
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(1)), 1);
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(2)), 2);
+				triProjected.color = triTransformed.color;
+				
+				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
+				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(1), triProjected.getVertex(1).w), 1);
+				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(2), triProjected.getVertex(2).w), 2);
+				
+				vOffsetView = new Vertex(1,1,0);
+				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(0), vOffsetView), 0);
+				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(1), vOffsetView), 1);
+				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(2), vOffsetView), 2);
 
-				scaledTriangle.setVertex(MatrixMath.ProjectedUpdate(projectedTriangle.getVertex(0)), 0);
-				scaledTriangle.setVertex(MatrixMath.ProjectedUpdate(projectedTriangle.getVertex(1)), 1);
-				scaledTriangle.setVertex(MatrixMath.ProjectedUpdate(projectedTriangle.getVertex(2)), 2);
-
-				if (dp > 1) {
-					dp = 1;
-				} else if (dp < 0) {
-					dp = 0;
+				triProjected.getVertex(0).x *= 0.5f * (float)windowWidth;
+				triProjected.getVertex(0).y *= 0.5f * (float)windowHeight;
+				triProjected.getVertex(1).x *= 0.5f * (float)windowWidth;
+				triProjected.getVertex(1).y *= 0.5f * (float)windowHeight;
+				triProjected.getVertex(2).x *= 0.5f * (float)windowWidth;
+				triProjected.getVertex(2).y *= 0.5f * (float)windowHeight;
+				
+				float average = (triProjected.getVertex(0).z + triProjected.getVertex(1).z + triProjected.getVertex(2).z)/3.0f;
+				
+				while(triangleRasterTree.containsKey(average)) {
+					average += 0.0001f;
 				}
-
-				scaledTriangle.color = new Color(dp, dp, dp);
-				float average = (translatedTriangle.getVertex(0).z + translatedTriangle.getVertex(1).z
-						+ translatedTriangle.getVertex(2).z) / 3.0f;
-				triangleRasterTree.put(average, scaledTriangle);
-				//triangleRaster.add(scaledTriangle);
+				
+				triangleRasterTree.put(average, triProjected);
 			}
 		}
 
 		int drawingCounter = triangleRasterTree.size();
+
+		g = bs.getDrawGraphics();
+		g.clearRect(0, 0, windowWidth, windowHeight);
+
 		for (int i = 0; i < drawingCounter; i++) {
 			drawTriangle(triangleRasterTree.pollLastEntry().getValue());
-			//drawTriangle(triangleRaster.get(i));
+			// drawTriangle(triangleRaster.get(i));
 		}
 
 		left = false;
-		angle1 += 0.001;
+		angle1 += 0.01;
 		angle2 += 0.025;
-		angle3 += 0.0075;
+		angle3 += 0.0375;
 
 		bs.show();
 		g.dispose();

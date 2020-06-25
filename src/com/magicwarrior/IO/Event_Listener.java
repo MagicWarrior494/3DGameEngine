@@ -1,59 +1,39 @@
 package com.magicwarrior.IO;
 
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-import com.magicwarrior.main.Main;
-
-public class Event_Listener implements MouseMotionListener, MouseListener{
+public class Event_Listener implements KeyListener {
 	
-	private int clickedX, clickedY;
-	private int currentX, currentY;
-	
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		currentX = e.getX();
-		currentY = e.getY();
-		
-		Main.yChange = currentX - clickedX;
-		Main.xChange = currentY - clickedY;
-	}
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		
+	private static boolean[] keys = new boolean[256];
+	public static boolean forward, backwards, left, right, shift, space;
+
+	private static void updateKeys() {
+		forward = keys[KeyEvent.VK_W];
+		backwards = keys[KeyEvent.VK_S];
+		left = keys[KeyEvent.VK_A];
+		right = keys[KeyEvent.VK_D];
+		space = keys[KeyEvent.VK_SPACE];
+		shift = keys[KeyEvent.VK_SHIFT];
 	}
 
 	@Override
-	public void mouseClicked(MouseEvent e) {
-		
-		clickedX = e.getX();
-		clickedY = e.getY();
-		
+	public void keyPressed(KeyEvent e) {
+		keys[e.getKeyCode()] = true;
+		updateKeys();
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {
+	public void keyReleased(KeyEvent e) {
+		keys[e.getKeyCode()] = false;
+		updateKeys();
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
 		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		Main.currentX += Main.xChange;
-		Main.currentY += Main.yChange;
 	}
 
 }

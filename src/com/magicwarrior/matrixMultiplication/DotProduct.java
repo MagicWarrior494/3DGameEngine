@@ -13,14 +13,10 @@ public class DotProduct {
 
 		Vertex outVertex = new Vertex();
 
-		outVertex.x = (vertex.x * multMatrix[0][0]) + (vertex.y * multMatrix[0][1]) + (vertex.z * multMatrix[0][2])
-				+ (vertex.w * multMatrix[0][3]);
-		outVertex.y = (vertex.x * multMatrix[1][0]) + (vertex.y * multMatrix[1][1]) + (vertex.z * multMatrix[1][2])
-				+ (vertex.w * multMatrix[1][3]);
-		outVertex.z = (vertex.x * multMatrix[2][0]) + (vertex.y * multMatrix[2][1]) + (vertex.z * multMatrix[2][2])
-				+ (vertex.w * multMatrix[2][3]);
-		float w = (vertex.x * multMatrix[3][0]) + (vertex.y * multMatrix[3][1]) + (vertex.z * multMatrix[3][2])
-				+ (vertex.w * multMatrix[3][3]);
+		outVertex.x = (vertex.x * multMatrix[0][0]) + (vertex.y * multMatrix[1][0]) + (vertex.z * multMatrix[2][0]) + (multMatrix[3][0]);
+		outVertex.y = (vertex.x * multMatrix[0][1]) + (vertex.y * multMatrix[1][1]) + (vertex.z * multMatrix[2][1]) + (multMatrix[3][1]);
+		outVertex.z = (vertex.x * multMatrix[0][2]) + (vertex.y * multMatrix[1][2]) + (vertex.z * multMatrix[2][2]) + (multMatrix[3][2]);
+		float w     = (vertex.x * multMatrix[0][3]) + (vertex.y * multMatrix[1][3]) + (vertex.z * multMatrix[2][3]) + (multMatrix[3][3]);
 
 		if (w != 0.0f) {
 			outVertex.x /= w;
