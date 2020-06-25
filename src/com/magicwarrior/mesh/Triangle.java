@@ -5,7 +5,7 @@ import java.awt.Color;
 public class Triangle {
 
 	public Vertex[] triangle = new Vertex[3];
-	public float color;
+	public Color color;
 
 	int sideNumber;
 
@@ -27,7 +27,7 @@ public class Triangle {
 		String[] v1P = v1.split(" ");
 		String[] v2P = v2.split(" ");
 		String[] v3P = v3.split(" ");
-		
+
 		triangle[0] = new Vertex(v1P[1], v1P[2], v1P[3]);
 		triangle[1] = new Vertex(v2P[1], v2P[2], v2P[3]);
 		triangle[2] = new Vertex(v3P[1], v3P[2], v3P[3]);

@@ -6,7 +6,7 @@ import java.awt.event.KeyListener;
 public class Event_Listener implements KeyListener {
 	
 	private static boolean[] keys = new boolean[256];
-	public static boolean forward, backwards, left, right, shift, space;
+	public static boolean forward, backwards, left, right, shift, space, z, x;
 
 	private static void updateKeys() {
 		forward = keys[KeyEvent.VK_W];
@@ -15,6 +15,8 @@ public class Event_Listener implements KeyListener {
 		right = keys[KeyEvent.VK_D];
 		space = keys[KeyEvent.VK_SPACE];
 		shift = keys[KeyEvent.VK_SHIFT];
+		z = keys[KeyEvent.VK_Z];
+		x = keys[KeyEvent.VK_X];
 	}
 
 	@Override
