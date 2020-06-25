@@ -134,34 +134,6 @@ public class MatrixMath {
 		return new Vertex(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 	}
 
-	static public float[][] project() {
-		float[][] projectionMatrix = new float[4][4];
-		float fNear = 0.1f;
-		float fFar = 1000.0f;
-		float fFov = 90.0f;
-		float fAspectRatio = (float) Main.windowHeight / (float) Main.windowWidth;
-		float fFovRad = (float) (1.0f / Math.tan(fFov * 0.5f / 180.0f * (float) Math.PI));
-
-		projectionMatrix[0][0] = fAspectRatio * fFovRad;
-		projectionMatrix[1][1] = fFovRad;
-		projectionMatrix[2][2] = fFar / (fFar - fNear);
-		projectionMatrix[3][2] = (-fFar * fNear) / (fFar - fNear);
-		projectionMatrix[2][3] = 1.0f;
-		projectionMatrix[3][3] = 0.0f;
-
-		return projectionMatrix;
-	}
-
-	static public Vertex ProjectedUpdate(Vertex vertex) {
-		Vertex o = new Vertex();
-		o = vertex;
-		o = AddX(o, 1);
-		o = AddY(o, 1);
-		o = MultX(o, Main.windowWidth / 2);
-		o = MultY(o, Main.windowHeight / 2);
-		return o;
-	}
-
 	static public float[][] PointAt(Vertex pos, Vertex target, Vertex up) {
 
 		// Calculate new forward direction
@@ -189,11 +161,10 @@ public class MatrixMath {
 		matrix[2][1] = newForward.y;
 		matrix[2][2] = newForward.z;
 		matrix[2][3] = 0.0f;
-		matrix[2][0] = pos.x;
-		matrix[2][1] = pos.y;
-		matrix[2][2] = pos.z;
-		matrix[2][3] = 1.0f;
-
+		matrix[3][0] = pos.x;
+		matrix[3][1] = pos.y;
+		matrix[3][2] = pos.z;
+		matrix[3][3] = 1.0f;
 		return matrix;
 	}
 

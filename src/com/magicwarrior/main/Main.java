@@ -73,7 +73,7 @@ public class Main implements Runnable {
 		display = new Display(title, windowWidth, windowHeight);
 		dotProduct = new DotProduct(windowWidth, windowHeight);
 		fileReader = new FileReader();
-		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "teapot.obj");
+		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "axis.obj");
 		fileReader.readFile(myObj);
 
 		display.getFrame().addKeyListener(eventListener);
@@ -121,11 +121,12 @@ public class Main implements Runnable {
 		matRotZ = MatrixMath.Matrix_MakeRotationZ(angle3);
 		matRotX = MatrixMath.Matrix_MakeRotationX(angle1);
 
-		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 16.0f);
+		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 6.0f);
 
 		matWorld = MatrixMath.Matrix_MakeIdentity();
 		matWorld = MatrixMath.Matrix_MultiplyMatrix(matRotZ, matRotX);
 		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matTrans);
+		
 
 		vLookDir = new Vertex(0, 0, 1);
 		vUp = new Vertex(0, 1, 0);
@@ -168,10 +169,15 @@ public class Main implements Runnable {
 				float dp = Math.max(0.1f, MatrixMath.DotProduct(light_direction, normal));
 
 				triTransformed.color = dp;
-
-				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(0)), 0);
-				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(1)), 1);
-				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triTransformed.getVertex(2)), 2);
+				
+				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(0)), 0);
+				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(1)), 1);
+				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(2)), 2);
+				triViewed.color = triTransformed.color;
+				
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(0)), 0);
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(1)), 1);
+				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(2)), 2);
 				triProjected.color = triTransformed.color;
 				
 				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
@@ -211,16 +217,23 @@ public class Main implements Runnable {
 		}
 
 		left = false;
-		angle1 += 0.01;
-		angle2 += 0.025;
-		angle3 += 0.0375;
+//		angle1 += 0.01;
+//		angle2 += 0.025;
+//		angle3 += 0.0375;
 
 		bs.show();
 		g.dispose();
 	}
 
 	public void update() {
-
+		
+		if(Event_Listener.forward) {
+			vCamera.y += 0.1f;
+		}
+		else if(Event_Listener.backwards) {
+			vCamera.y -= 0.1f;
+		}
+		
 	}
 
 	public void startLoop() {
@@ -243,7 +256,8 @@ public class Main implements Runnable {
 				/////////////////////////////////////
 
 				render();
-
+				update();
+				
 				/////////////////////////////////////
 				delta--;
 				ticks++;
