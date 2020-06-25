@@ -36,7 +36,10 @@ public class Main implements Runnable {
 
 	float angle1 = 0;
 	float angle2 = 0;
-	float angle3 = 0;
+	float angle3 = 180 * ((float) Math.PI / 180);
+
+	float fYaw;
+
 	int scaledNumber = 0;
 	int translate = 0;
 
@@ -53,12 +56,11 @@ public class Main implements Runnable {
 	int tick = 0;
 
 	Vertex vCamera = new Vertex();
-	Vertex vUp, vTarget, vLookDir, vCameraRay, light_direction, vOffsetView;
-	
+	Vertex vUp, vTarget, vLookDir = new Vertex(), vCameraRay, light_direction, vOffsetView, vForward;
+
 	float[][] matRotZ = new float[4][4], matRotX = new float[4][4], matRotY = new float[4][4],
 			matTrans = new float[4][4], matWorld = new float[4][4], matCamera = new float[4][4],
-			matView = new float[4][4],
-			matProj;
+			matView = new float[4][4], matProj, matCameraRot = new float[4][4];
 
 	float fTheta = 0.0f;
 
@@ -73,7 +75,7 @@ public class Main implements Runnable {
 		display = new Display(title, windowWidth, windowHeight);
 		dotProduct = new DotProduct(windowWidth, windowHeight);
 		fileReader = new FileReader();
-		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "axis.obj");
+		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "teapot.obj");
 		fileReader.readFile(myObj);
 
 		display.getFrame().addKeyListener(eventListener);
@@ -115,23 +117,26 @@ public class Main implements Runnable {
 			display.getCanves().createBufferStrategy(3);
 			return;
 		}
+
 		
+
 		matProj = MatrixMath.Matrix_MakeProjection(90.0f, windowWidth / windowHeight, 0.1f, 1000.0f);
-		
+
 		matRotZ = MatrixMath.Matrix_MakeRotationZ(angle3);
 		matRotX = MatrixMath.Matrix_MakeRotationX(angle1);
 
-		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 6.0f);
+		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 10.0f);
 
 		matWorld = MatrixMath.Matrix_MakeIdentity();
 		matWorld = MatrixMath.Matrix_MultiplyMatrix(matRotZ, matRotX);
 		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matTrans);
-		
 
-		vLookDir = new Vertex(0, 0, 1);
 		vUp = new Vertex(0, 1, 0);
+		vTarget = new Vertex(0,0,1);
+		matCameraRot = MatrixMath.Matrix_MakeRotationY(fYaw);
+		vLookDir = MatrixMath.MultiplyVertex(matCameraRot, vTarget);
 		vTarget = MatrixMath.VertexAdd(vCamera, vLookDir);
-
+		
 		matCamera = MatrixMath.PointAt(vCamera, vTarget, vUp);
 
 		// Make view matrix from camera
@@ -169,39 +174,40 @@ public class Main implements Runnable {
 				float dp = Math.max(0.1f, MatrixMath.DotProduct(light_direction, normal));
 
 				triTransformed.color = dp;
-				
+
 				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(0)), 0);
 				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(1)), 1);
 				triViewed.setVertex(MatrixMath.MultiplyVertex(matView, triTransformed.getVertex(2)), 2);
 				triViewed.color = triTransformed.color;
-				
+
 				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(0)), 0);
 				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(1)), 1);
 				triProjected.setVertex(MatrixMath.MultiplyVertex(matProj, triViewed.getVertex(2)), 2);
 				triProjected.color = triTransformed.color;
-				
+
 				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
 				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(1), triProjected.getVertex(1).w), 1);
 				triProjected.setVertex(MatrixMath.VertexDiv(triProjected.getVertex(2), triProjected.getVertex(2).w), 2);
-				
-				vOffsetView = new Vertex(1,1,0);
+
+				vOffsetView = new Vertex(1, 1, 0);
 				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(0), vOffsetView), 0);
 				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(1), vOffsetView), 1);
 				triProjected.setVertex(MatrixMath.VertexAdd(triProjected.getVertex(2), vOffsetView), 2);
 
-				triProjected.getVertex(0).x *= 0.5f * (float)windowWidth;
-				triProjected.getVertex(0).y *= 0.5f * (float)windowHeight;
-				triProjected.getVertex(1).x *= 0.5f * (float)windowWidth;
-				triProjected.getVertex(1).y *= 0.5f * (float)windowHeight;
-				triProjected.getVertex(2).x *= 0.5f * (float)windowWidth;
-				triProjected.getVertex(2).y *= 0.5f * (float)windowHeight;
-				
-				float average = (triProjected.getVertex(0).z + triProjected.getVertex(1).z + triProjected.getVertex(2).z)/3.0f;
-				
-				while(triangleRasterTree.containsKey(average)) {
+				triProjected.getVertex(0).x *= 0.5f * (float) windowWidth;
+				triProjected.getVertex(0).y *= 0.5f * (float) windowHeight;
+				triProjected.getVertex(1).x *= 0.5f * (float) windowWidth;
+				triProjected.getVertex(1).y *= 0.5f * (float) windowHeight;
+				triProjected.getVertex(2).x *= 0.5f * (float) windowWidth;
+				triProjected.getVertex(2).y *= 0.5f * (float) windowHeight;
+
+				float average = (triProjected.getVertex(0).z + triProjected.getVertex(1).z
+						+ triProjected.getVertex(2).z) / 3.0f;
+
+				while (triangleRasterTree.containsKey(average)) {
 					average += 0.0001f;
 				}
-				
+
 				triangleRasterTree.put(average, triProjected);
 			}
 		}
@@ -227,13 +233,26 @@ public class Main implements Runnable {
 
 	public void update() {
 		
+		vForward = MatrixMath.Mult(vLookDir, 0.1f);
+		
 		if(Event_Listener.forward) {
-			vCamera.y += 0.1f;
+			vCamera = MatrixMath.VertexAdd(vCamera, vForward);
 		}
 		else if(Event_Listener.backwards) {
+			vCamera = MatrixMath.VertexSub(vCamera, vForward);
+		}
+		if(Event_Listener.left) {
+			fYaw += 0.025f;
+		}
+		else if(Event_Listener.right) {
+			fYaw -= 0.025f;
+		}
+		if(Event_Listener.shift) {
+			vCamera.y += 0.1f;
+		}
+		else if(Event_Listener.space) {
 			vCamera.y -= 0.1f;
 		}
-		
 	}
 
 	public void startLoop() {
@@ -257,7 +276,7 @@ public class Main implements Runnable {
 
 				render();
 				update();
-				
+
 				/////////////////////////////////////
 				delta--;
 				ticks++;

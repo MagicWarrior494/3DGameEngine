@@ -137,12 +137,12 @@ public class MatrixMath {
 	static public float[][] PointAt(Vertex pos, Vertex target, Vertex up) {
 
 		// Calculate new forward direction
-		Vertex newForward = Sub(target, pos);
+		Vertex newForward = VertexSub(target, pos);
 		newForward = Normalise(newForward);
 
 		// Calculate new Up direction
 		Vertex a = Mult(newForward, DotProduct(up, newForward));
-		Vertex newUp = Sub(up, a);
+		Vertex newUp = VertexSub(up, a);
 		newUp = Normalise(newUp);
 
 		Vertex newRight = CrossProduct(newUp, newForward);
@@ -171,21 +171,12 @@ public class MatrixMath {
 	static public float[][] QuickInverse(float[][] m) {
 
 		float[][] matrix = new float[4][4];
-		matrix[0][0] = m[0][0];
-		matrix[0][1] = m[1][0];
-		matrix[0][2] = m[2][0];
-		matrix[0][3] = 0.0f;
-		matrix[1][0] = m[0][1];
-		matrix[1][1] = m[1][1];
-		matrix[1][2] = m[2][1];
-		matrix[1][3] = 0.0f;
-		matrix[2][0] = m[0][2];
-		matrix[2][1] = m[1][2];
-		matrix[2][2] = m[2][2];
-		matrix[2][3] = 0.0f;
-		matrix[3][0] = -((m[3][0] * matrix[0][0]) + (m[3][1] * matrix[1][0]) + (m[3][2] * matrix[2][0]));
-		matrix[3][1] = -((m[3][0] * matrix[0][1]) + (m[3][1] * matrix[1][1]) + (m[3][2] * matrix[2][1]));
-		matrix[3][2] = -((m[3][0] * matrix[0][2]) + (m[3][1] * matrix[1][2]) + (m[3][2] * matrix[2][2]));
+		matrix[0][0] = m[0][0]; matrix[0][1] = m[1][0]; matrix[0][2] = m[2][0]; matrix[0][3] = 0.0f;
+		matrix[1][0] = m[0][1]; matrix[1][1] = m[1][1]; matrix[1][2] = m[2][1]; matrix[1][3] = 0.0f;
+		matrix[2][0] = m[0][2]; matrix[2][1] = m[1][2]; matrix[2][2] = m[2][2]; matrix[2][3] = 0.0f;
+		matrix[3][0] = -(m[3][0] * matrix[0][0] + m[3][1] * matrix[1][0] + m[3][2] * matrix[2][0]);
+		matrix[3][1] = -(m[3][0] * matrix[0][1] + m[3][1] * matrix[1][1] + m[3][2] * matrix[2][1]);
+		matrix[3][2] = -(m[3][0] * matrix[0][2] + m[3][1] * matrix[1][2] + m[3][2] * matrix[2][2]);
 		matrix[3][3] = 1.0f;
 		return matrix;
 	}
@@ -244,7 +235,7 @@ public class MatrixMath {
 		return new Vertex(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 	}
 
-	static public Vertex Sub(Vertex v1, Vertex v2) {
+	static public Vertex VertexSub(Vertex v1, Vertex v2) {
 		return new Vertex(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 	}
 
