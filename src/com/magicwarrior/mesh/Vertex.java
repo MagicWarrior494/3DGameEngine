@@ -24,4 +24,10 @@ public class Vertex {
 		this.w = 1;
 	}
 
+	@Override
+	public String toString() {
+		return "Vertex [x=" + x + ", y=" + y + ", z=" + z + "]";
+	}
+	
+
 }

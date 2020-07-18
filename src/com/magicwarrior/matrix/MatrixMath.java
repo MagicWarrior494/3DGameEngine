@@ -4,11 +4,9 @@ import java.awt.Color;
 
 import com.magicwarrior.mesh.Triangle;
 import com.magicwarrior.mesh.Vertex;
+import com.rits.cloning.Cloner;
 
 public class MatrixMath {
-
-	public Triangle clipped1;
-	public Triangle clipped2;
 
 	static public Vertex Matrix_MultiplyVector(float[][] m, Vertex i) {
 		Vertex v = new Vertex();
@@ -39,14 +37,16 @@ public class MatrixMath {
 		return Vector_Add(lineStart, lineToIntersect);
 	}
 
-	public int Triangle_ClipAgainstPlane(Vertex plane_p, Vertex plane_n, Triangle in_tri) {
+	public static int Triangle_ClipAgainstPlane(Vertex plane_p, Vertex plane_n, Triangle in_tri, Triangle out_tri1,
+			Triangle out_tri2, boolean value) {
 		// Make sure plane normal is indeed normal
 		plane_n = Vector_Normalise(plane_n);
+		Cloner clone = new Cloner();
 		// Create two temporary storage arrays to classify points either side of plane
 		// If distance sign is positive, point lies on "inside" of plane
 		Vertex[] inside_points = new Vertex[3];
 		Vertex[] outside_points = new Vertex[3];
-		
+
 		int nInsidePointCount = 0;
 		int nOutsidePointCount = 0;
 
@@ -77,34 +77,32 @@ public class MatrixMath {
 
 		if (nInsidePointCount == 0) {
 			// All points lie on the outside of plane, so clip whole triangle
-			// It ceases to exist
-			clipped1 = null;
-			clipped2 = null;
+			// It ceases to existZZZ
 			return 0; // No returned triangles are valid
 		}
 
 		if (nInsidePointCount == 3) {
 			// All points lie on the inside of plane, so do nothing
 			// and allow the triangle to simply pass through
-			clipped1 = in_tri;
-			clipped1.color = Color.red;
-			clipped2 = null;
-			
+			out_tri1.setVertex(in_tri.getVertex(0), 0);
+			out_tri1.setVertex(in_tri.getVertex(1), 1);
+			out_tri1.setVertex(in_tri.getVertex(2), 2);
+			out_tri1.color = in_tri.color;
+
 			return 1; // Just the one returned original triangle is valid
 		}
 
 		if (nInsidePointCount == 1 && nOutsidePointCount == 2) {
 			// The inside point is valid, so keep that...
-			clipped1 = new Triangle();
-			clipped2 = null;
-			clipped1.setVertex(inside_points[0], 0);
+			out_tri1.setVertex(inside_points[0], 0);
 
 			// but the two new points are at the locations where the
 			// original sides of the triangle (lines) intersect with the plane
-			clipped1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]), 1);
-			clipped1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]), 2);
-
-			clipped1.color = Color.red;
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]),
+					1);
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]),
+					2);
+			out_tri1.color = in_tri.color;
 
 			return 1; // Return the newly formed single triangle
 		}
@@ -116,27 +114,28 @@ public class MatrixMath {
 
 			// Copy appearance info to new triangles
 
-			// The first triangle consists of the two ianside points and a new
+			// The first triangle consists of the two inside points and a new
 			// point determined by the location where one side of the triangle
 			// intersects with the plane
-			clipped1 = new Triangle();
-			clipped2 = new Triangle();
-			
-			clipped1.color = Color.red;
-			clipped2.color = Color.BLUE;
-			
-			clipped1.setVertex(inside_points[0], 0);
-			clipped1.setVertex(inside_points[1], 1);
-			clipped1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]), 2);
 
+			out_tri1.setVertex(inside_points[0], 0);
+			out_tri1.setVertex(inside_points[1], 1);
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]),
+					2);
+			out_tri1.color = in_tri.color;
 			// The second triangle is composed of one of he inside points, a
 			// new point determined by the intersection of the other side of the
 			// triangle and the plane, and the newly created point above
-			clipped2.setVertex(inside_points[1], 0);
-			clipped2.setVertex(clipped1.getVertex(2), 1);
-			clipped2.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]), 2);
-
-			return 2; // Return two newly formed triangles which form a quad
+			out_tri2.setVertex(inside_points[1], 0);
+			out_tri2.setVertex(out_tri1.getVertex(2), 1);
+			out_tri2.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]),
+					2);
+			out_tri2.color = in_tri.color;
+			if(value)
+				return 1;
+			else
+				return 2;
+			// Return two newly formed triangles which form a quad
 		} else {
 			return 0;
 		}

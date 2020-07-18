@@ -1,6 +1,7 @@
 package com.magicwarrior.mesh;
 
 import java.awt.Color;
+import java.util.Arrays;
 
 public class Triangle {
 
@@ -43,6 +44,21 @@ public class Triangle {
 
 	public int getSideNumber() {
 		return sideNumber;
+	}
+	public void invert() {
+		Vertex[] triTemp = new Vertex[3];
+		triTemp[0] = triangle[2];
+		triTemp[1] = triangle[1];
+		triTemp[2] = triangle[0];
+		triangle[0] = triTemp[0];
+		triangle[1] = triTemp[1];
+		triangle[2] = triTemp[2];
+		
+	}
+
+	@Override
+	public String toString() {
+		return "Triangle [triangle= " + Arrays.toString(triangle) +", Color=" + color +  "]";
 	}
 
 }

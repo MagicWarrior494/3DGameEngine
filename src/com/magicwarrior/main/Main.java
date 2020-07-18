@@ -10,10 +10,10 @@ import java.util.TreeMap;
 import com.magicwarrior.IO.Event_Listener;
 import com.magicwarrior.IO.FileReader;
 import com.magicwarrior.matrix.MatrixMath;
-import com.magicwarrior.matrixMultiplication.DotProduct;
 import com.magicwarrior.mesh.Mesh;
 import com.magicwarrior.mesh.Triangle;
 import com.magicwarrior.mesh.Vertex;
+import com.rits.cloning.Cloner;
 
 public class Main implements Runnable {
 
@@ -38,12 +38,12 @@ public class Main implements Runnable {
 
 	int scaledNumber = 0;
 	int translate = 0;
-
+	boolean pressedKey = false;
 	float far = 100f;
 	float near = 0.1f;
-
+	boolean flipped = false;
 	float FOV = 90.0f;
-
+	Cloner clone = new Cloner();
 	boolean left = true;
 
 	private String title;
@@ -70,10 +70,11 @@ public class Main implements Runnable {
 		eventListener = new Event_Listener();
 		display = new Display(title, windowWidth, windowHeight);
 		fileReader = new FileReader();
-		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "untitled.obj");
+		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "teapot.obj");
 		fileReader.readFile(myObj);
 
 		display.getFrame().addKeyListener(eventListener);
+		display.getCanves().addMouseMotionListener(eventListener);
 		cube = fileReader.getMesh();
 
 	}
@@ -161,32 +162,37 @@ public class Main implements Runnable {
 
 			if (MatrixMath.Vector_DotProduct(normal, vCameraRay) < 0.0f) {
 
-				light_direction = new Vertex(0.0f, 1.0f, -1.0f);
+				light_direction = new Vertex(0.0f, 0.0f, -1.0f);
 				light_direction = MatrixMath.Vector_Normalise(light_direction);
 
 				float dp = Math.max(0.1f, MatrixMath.Vector_DotProduct(light_direction, normal));
 
-//				triTransformed.color = new Color(dp, dp, dp);
+				triTransformed.color = new Color(dp, dp, dp);
 
 				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(0)), 0);
 				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(1)), 1);
 				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(2)), 2);
 				triViewed.color = triTransformed.color;
 
-				int nClippedTriangles = 0;
-				Triangle[] clipped = new Triangle[2];
-				nClippedTriangles = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0, 0, 1.0f), new Vertex(0, 0, 1),
-						triViewed);
-				
-					clipped[0] = MatrixMath.clipped1;
-					clipped[1] = MatrixMath.clipped2;
-					
-				for (int n = 0; n < nClippedTriangles; n++) {
+				Triangle newTri1 = new Triangle();
+				Triangle newTri2 = new Triangle();
+				int loopCounter = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0.0f, 0.0f, 0.1f),
+						new Vertex(0.0f, 0.0f, 1.0f), triViewed, newTri1, newTri2, pressedKey);
 
-					triProjected.setVertex(MatrixMath.Matrix_MultiplyVector(matProj, clipped[n].getVertex(0)), 0);
-					triProjected.setVertex(MatrixMath.Matrix_MultiplyVector(matProj, clipped[n].getVertex(1)), 1);
-					triProjected.setVertex(MatrixMath.Matrix_MultiplyVector(matProj, clipped[n].getVertex(2)), 2);
-					triProjected.color = clipped[n].color;
+				Mesh newTriangles = new Mesh();
+				newTriangles.mesh.add(newTri1);
+				newTriangles.mesh.add(newTri2);
+
+				for (int n = 0; n < loopCounter; n++) {
+					Triangle testTri = new Triangle();
+
+					triProjected.setVertex(
+							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(0)), 0);
+					triProjected.setVertex(
+							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(1)), 1);
+					triProjected.setVertex(
+							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(2)), 2);
+					triProjected.color = newTriangles.mesh.get(n).color;
 
 					triProjected.setVertex(
 							MatrixMath.Vector_Div(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
@@ -211,10 +217,13 @@ public class Main implements Runnable {
 							+ triProjected.getVertex(2).z) / 3.0f;
 
 					while (triangleRasterTree.containsKey(average)) {
-						average += 0.0001f;
+						average += 0.5f;
 					}
-
-					triangleRasterTree.put(average, triProjected);
+					
+					testTri = clone.deepClone(triProjected);
+					triangleRasterTree.put(average, testTri);
+					
+					
 				}
 			}
 		}
@@ -226,7 +235,6 @@ public class Main implements Runnable {
 
 		for (int i = 0; i < drawingCounter; i++) {
 			drawTriangle(triangleRasterTree.pollLastEntry().getValue());
-			// drawTriangle(triangleRaster.get(i));
 		}
 
 		left = false;
@@ -257,10 +265,14 @@ public class Main implements Runnable {
 		} else if (Event_Listener.space) {
 			vCamera.y -= 0.1f;
 		}
-		if(Event_Listener.x) {
+		if (Event_Listener.x) {
 			vCamera.x += 0.1f;
-		}else if(Event_Listener.z) {
+		} else if (Event_Listener.z) {
 			vCamera.x -= 0.1f;
+		}
+		if (Event_Listener.j) {
+			pressedKey = !pressedKey;
+			System.out.println(pressedKey);
 		}
 	}
 
@@ -292,7 +304,7 @@ public class Main implements Runnable {
 			}
 			if (timer >= 1000000000) {
 				timer = 0;
-				System.out.println("Running at: " + ticks + "Ticks per second");
+				 System.out.println("Running at: " + ticks + "Ticks per second");
 				ticks = 0;
 			}
 		}
@@ -308,7 +320,7 @@ public class Main implements Runnable {
 		if (running)
 			return;
 		running = true;
-		thread = new Thread(this);
+		thread = new Thread(this, "3dGameEngine");
 		thread.start();
 	}
 
