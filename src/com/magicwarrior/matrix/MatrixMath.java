@@ -1,10 +1,7 @@
 package com.magicwarrior.matrix;
 
-import java.awt.Color;
-
 import com.magicwarrior.mesh.Triangle;
 import com.magicwarrior.mesh.Vertex;
-import com.rits.cloning.Cloner;
 
 public class MatrixMath {
 
@@ -41,7 +38,6 @@ public class MatrixMath {
 			Triangle out_tri2, boolean value) {
 		// Make sure plane normal is indeed normal
 		plane_n = Vector_Normalise(plane_n);
-		Cloner clone = new Cloner();
 		// Create two temporary storage arrays to classify points either side of plane
 		// If distance sign is positive, point lies on "inside" of plane
 		Vertex[] inside_points = new Vertex[3];
@@ -98,10 +94,8 @@ public class MatrixMath {
 
 			// but the two new points are at the locations where the
 			// original sides of the triangle (lines) intersect with the plane
-			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]),
-					1);
-			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]),
-					2);
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]), 1);
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]), 2);
 			out_tri1.color = in_tri.color;
 
 			return 1; // Return the newly formed single triangle
@@ -120,18 +114,16 @@ public class MatrixMath {
 
 			out_tri1.setVertex(inside_points[0], 0);
 			out_tri1.setVertex(inside_points[1], 1);
-			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]),
-					2);
+			out_tri1.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]), 2);
 			out_tri1.color = in_tri.color;
 			// The second triangle is composed of one of he inside points, a
 			// new point determined by the intersection of the other side of the
 			// triangle and the plane, and the newly created point above
 			out_tri2.setVertex(inside_points[1], 0);
 			out_tri2.setVertex(out_tri1.getVertex(2), 1);
-			out_tri2.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]),
-					2);
+			out_tri2.setVertex(Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]), 2);
 			out_tri2.color = in_tri.color;
-			if(value)
+			if (value)
 				return 1;
 			else
 				return 2;

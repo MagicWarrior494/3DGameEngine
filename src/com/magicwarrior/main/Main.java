@@ -70,7 +70,7 @@ public class Main implements Runnable {
 		eventListener = new Event_Listener();
 		display = new Display(title, windowWidth, windowHeight);
 		fileReader = new FileReader();
-		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "teapot.obj");
+		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "untitled.obj");
 		fileReader.readFile(myObj);
 
 		display.getFrame().addKeyListener(eventListener);
@@ -80,7 +80,19 @@ public class Main implements Runnable {
 	}
 
 	public void drawVertex(Vertex vertex) {
+		g.setColor(Color.PINK);
+		vOffsetView = new Vertex(1, 1, 0);
+		
+		vertex = MatrixMath.Matrix_MultiplyVector(matWorld, vertex);
+		vertex = MatrixMath.Matrix_MultiplyVector(matView, vertex);
+		vertex = MatrixMath.Matrix_MultiplyVector(matProj, vertex);
+		vertex = MatrixMath.Vector_Div(vertex, vertex.w);
+		vertex = MatrixMath.Vector_Add(vertex, vOffsetView);
+		vertex.x *= 0.5f * (float) windowWidth;
+		vertex.y *= 0.5f * (float) windowHeight;
+		
 		g.fillOval((int) vertex.x, (int) vertex.y, 5, 5);
+		System.out.println("Drawing dot at: " + vertex.x + " " + vertex.y);
 	}
 
 	public void drawLine(float x1, float y1, float x2, float y2) {
@@ -92,10 +104,10 @@ public class Main implements Runnable {
 		Vertex v2 = triangle.getVertex(1);
 		Vertex v3 = triangle.getVertex(2);
 
-		g.setColor(Color.BLACK);
-		drawLine(v1.x, v1.y, v2.x, v2.y);
-		drawLine(v2.x, v2.y, v3.x, v3.y);
-		drawLine(v3.x, v3.y, v1.x, v1.y);
+//		g.setColor(Color.BLACK);
+//		drawLine(v1.x, v1.y, v2.x, v2.y);
+//		drawLine(v2.x, v2.y, v3.x, v3.y);
+//		drawLine(v3.x, v3.y, v1.x, v1.y);
 
 		int[] xPoints = { (int) v1.x, (int) v2.x, (int) v3.x };
 		int[] yPoints = { (int) v1.y, (int) v2.y, (int) v3.y };
@@ -155,14 +167,14 @@ public class Main implements Runnable {
 			line2 = MatrixMath.Vector_Sub(triTransformed.getVertex(2), triTransformed.getVertex(0));
 
 			normal = MatrixMath.Vector_CrossProduct(line1, line2);
-
 			normal = MatrixMath.Vector_Normalise(normal);
 
 			vCameraRay = MatrixMath.Vector_Sub(triTransformed.getVertex(0), vCamera);
 
 			if (MatrixMath.Vector_DotProduct(normal, vCameraRay) < 0.0f) {
+//				light_direction = new Vertex((float)Math.cos(fYaw), vCamera.y, (float)Math.sin(fYaw));
+				light_direction = new Vertex(0,0,-1);
 
-				light_direction = new Vertex(0.0f, 0.0f, -1.0f);
 				light_direction = MatrixMath.Vector_Normalise(light_direction);
 
 				float dp = Math.max(0.1f, MatrixMath.Vector_DotProduct(light_direction, normal));
@@ -176,7 +188,7 @@ public class Main implements Runnable {
 
 				Triangle newTri1 = new Triangle();
 				Triangle newTri2 = new Triangle();
-				int loopCounter = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0.0f, 0.0f, 0.1f),
+				int loopCounter = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0.0f, 0.0f, 0.2f),
 						new Vertex(0.0f, 0.0f, 1.0f), triViewed, newTri1, newTri2, pressedKey);
 
 				Mesh newTriangles = new Mesh();
@@ -217,13 +229,12 @@ public class Main implements Runnable {
 							+ triProjected.getVertex(2).z) / 3.0f;
 
 					while (triangleRasterTree.containsKey(average)) {
-						average += 0.5f;
+						average += 0.0005f;
 					}
-					
+
 					testTri = clone.deepClone(triProjected);
 					triangleRasterTree.put(average, testTri);
-					
-					
+
 				}
 			}
 		}
@@ -236,6 +247,7 @@ public class Main implements Runnable {
 		for (int i = 0; i < drawingCounter; i++) {
 			drawTriangle(triangleRasterTree.pollLastEntry().getValue());
 		}
+//		drawVertex(light_direction);
 
 		left = false;
 //		angle1 += 0.01;
@@ -256,9 +268,11 @@ public class Main implements Runnable {
 			vCamera = MatrixMath.Vector_Sub(vCamera, vForward);
 		}
 		if (Event_Listener.left) {
-			fYaw += 0.025f;
+			fYaw += Math.PI/64;
+			System.out.println(fYaw);
 		} else if (Event_Listener.right) {
-			fYaw -= 0.025f;
+			fYaw -= Math.PI/64;
+			System.out.println(fYaw);
 		}
 		if (Event_Listener.shift) {
 			vCamera.y += 0.1f;
@@ -266,9 +280,9 @@ public class Main implements Runnable {
 			vCamera.y -= 0.1f;
 		}
 		if (Event_Listener.x) {
-			vCamera.x += 0.1f;
+			vCamera = MatrixMath.Vector_Add(vCamera, MatrixMath.Vector_CrossProduct(vUp, vForward));
 		} else if (Event_Listener.z) {
-			vCamera.x -= 0.1f;
+			vCamera = MatrixMath.Vector_Sub(vCamera, MatrixMath.Vector_CrossProduct(vUp, vForward));
 		}
 		if (Event_Listener.j) {
 			pressedKey = !pressedKey;
@@ -294,17 +308,15 @@ public class Main implements Runnable {
 
 			if (delta >= 1) {
 				/////////////////////////////////////
-
 				render();
 				update();
-
 				/////////////////////////////////////
 				delta--;
 				ticks++;
 			}
 			if (timer >= 1000000000) {
 				timer = 0;
-				 System.out.println("Running at: " + ticks + "Ticks per second");
+//				System.out.println("Running at: " + ticks + "Ticks per second");
 				ticks = 0;
 			}
 		}
