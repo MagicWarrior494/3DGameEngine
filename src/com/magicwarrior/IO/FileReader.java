@@ -12,9 +12,10 @@ import com.magicwarrior.mesh.Triangle;
 
 public class FileReader {
 
-	Mesh mesh = new Mesh();
+	Mesh mesh;
 
 	public void readFile(Path myObj) {
+		mesh = new Mesh();
 
 		List<String> list = new ArrayList<>();
 		List<String> triangle = new ArrayList<>();
@@ -43,7 +44,8 @@ public class FileReader {
 		
 	}
 
-	public Mesh getMesh() {
+	public Mesh getMesh(Path myObj) {
+		readFile(myObj);
 		System.out.println(mesh.getSize());
 		return mesh;
 	}

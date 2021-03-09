@@ -22,7 +22,7 @@ public class Main implements Runnable {
 
 	private Display display;
 	private Thread thread;
-	private Mesh cube = new Mesh();
+	private Mesh[] cube = new Mesh[1];
 	private FileReader fileReader;
 	private Event_Listener eventListener;
 	private boolean running = false;
@@ -70,19 +70,32 @@ public class Main implements Runnable {
 		eventListener = new Event_Listener();
 		display = new Display(title, windowWidth, windowHeight);
 		fileReader = new FileReader();
-		Path myObj = Paths.get("C:\\Users\\MagicWarrior\\Desktop\\OBJ", "untitled.obj");
-		fileReader.readFile(myObj);
+		Path myObj = Paths.get("C:\\Users\\foush\\Desktop\\OBJ", "teapot.txt");
 
 		display.getFrame().addKeyListener(eventListener);
 		display.getCanves().addMouseMotionListener(eventListener);
-		cube = fileReader.getMesh();
-
+		for (int i = 0; i < cube.length; i++) {
+			cube[i] = fileReader.getMesh(myObj);
+			cube[i].MoveX(5f*i);
+		}
+		
+		matProj = MatrixMath.Matrix_MakeProjection(90.0f, windowWidth / windowHeight, 0.1f, 1000.0f);
+		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 4.0f);
+		
+		matRotZ = MatrixMath.Matrix_MakeRotationZ(angle3);
+		matRotX = MatrixMath.Matrix_MakeRotationX(angle1);
+		matRotY = MatrixMath.Matrix_MakeRotationY(angle2);
+		
+		matWorld = MatrixMath.Matrix_MakeIdentity();
+		matWorld = MatrixMath.Matrix_MultiplyMatrix(matRotZ, matRotX);
+		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matRotY);
+		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matTrans);
 	}
-
+	
 	public void drawVertex(Vertex vertex) {
 		g.setColor(Color.PINK);
 		vOffsetView = new Vertex(1, 1, 0);
-		
+
 		vertex = MatrixMath.Matrix_MultiplyVector(matWorld, vertex);
 		vertex = MatrixMath.Matrix_MultiplyVector(matView, vertex);
 		vertex = MatrixMath.Matrix_MultiplyVector(matProj, vertex);
@@ -90,7 +103,7 @@ public class Main implements Runnable {
 		vertex = MatrixMath.Vector_Add(vertex, vOffsetView);
 		vertex.x *= 0.5f * (float) windowWidth;
 		vertex.y *= 0.5f * (float) windowHeight;
-		
+
 		g.fillOval((int) vertex.x, (int) vertex.y, 5, 5);
 		System.out.println("Drawing dot at: " + vertex.x + " " + vertex.y);
 	}
@@ -118,24 +131,15 @@ public class Main implements Runnable {
 
 	}
 
-	public void render() {
+	public void render(String fps) {
 
 		bs = display.getCanves().getBufferStrategy();
 		if (bs == null) {
 			display.getCanves().createBufferStrategy(3);
 			return;
 		}
+		
 
-		matProj = MatrixMath.Matrix_MakeProjection(90.0f, windowWidth / windowHeight, 0.1f, 1000.0f);
-
-		matRotZ = MatrixMath.Matrix_MakeRotationZ(angle3);
-		matRotX = MatrixMath.Matrix_MakeRotationX(angle1);
-
-		matTrans = MatrixMath.Matrix_MakeTranslation(0.0f, 0.0f, 4.0f);
-
-		matWorld = MatrixMath.Matrix_MakeIdentity();
-		matWorld = MatrixMath.Matrix_MultiplyMatrix(matRotZ, matRotX);
-		matWorld = MatrixMath.Matrix_MultiplyMatrix(matWorld, matTrans);
 
 		vUp = new Vertex(0, 1, 0);
 		vTarget = new Vertex(0, 0, 1);
@@ -149,110 +153,112 @@ public class Main implements Runnable {
 		matView = MatrixMath.Matrix_QuickInverse(matCamera);
 
 		TreeMap<Float, Triangle> triangleRasterTree = new TreeMap<>();
+		
+		light_direction = new Vertex(0, 0, -1);
 
-		for (Triangle tri : cube.mesh) {
-			Triangle triProjected = new Triangle();
-			Triangle triTransformed = new Triangle();
-			Triangle triViewed = new Triangle();
+		light_direction = MatrixMath.Vector_Normalise(light_direction);
+		
+		for (int i = 0; i < cube.length; i++) {
+			for (Triangle tri : cube[i].mesh) {
+				Triangle triProjected = new Triangle();
+				Triangle triTransformed = new Triangle();
+				Triangle triViewed = new Triangle();
 
-			triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(0)), 0);
-			triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(1)), 1);
-			triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(2)), 2);
+				triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(0)), 0);
+				triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(1)), 1);
+				triTransformed.setVertex(MatrixMath.Matrix_MultiplyVector(matWorld, tri.getVertex(2)), 2);
 
-			Vertex normal = new Vertex();
-			Vertex line1 = new Vertex();
-			Vertex line2 = new Vertex();
+				Vertex normal = new Vertex();
+				Vertex line1 = new Vertex();
+				Vertex line2 = new Vertex();
 
-			line1 = MatrixMath.Vector_Sub(triTransformed.getVertex(1), triTransformed.getVertex(0));
-			line2 = MatrixMath.Vector_Sub(triTransformed.getVertex(2), triTransformed.getVertex(0));
+				line1 = MatrixMath.Vector_Sub(triTransformed.getVertex(1), triTransformed.getVertex(0));
+				line2 = MatrixMath.Vector_Sub(triTransformed.getVertex(2), triTransformed.getVertex(0));
 
-			normal = MatrixMath.Vector_CrossProduct(line1, line2);
-			normal = MatrixMath.Vector_Normalise(normal);
+				normal = MatrixMath.Vector_CrossProduct(line1, line2);
+				normal = MatrixMath.Vector_Normalise(normal);
 
-			vCameraRay = MatrixMath.Vector_Sub(triTransformed.getVertex(0), vCamera);
+				vCameraRay = MatrixMath.Vector_Sub(triTransformed.getVertex(0), vCamera);
 
-			if (MatrixMath.Vector_DotProduct(normal, vCameraRay) < 0.0f) {
-//				light_direction = new Vertex((float)Math.cos(fYaw), vCamera.y, (float)Math.sin(fYaw));
-				light_direction = new Vertex(0,0,-1);
+				if (MatrixMath.Vector_DotProduct(normal, vCameraRay) < 0.0f) {
+//				light_direction = new Vertex((float)Math.cos(fYaw), vCamera.y, (float)Math.sin(fYaw))
+					float dp = Math.max(0.1f, MatrixMath.Vector_DotProduct(light_direction, normal));
 
-				light_direction = MatrixMath.Vector_Normalise(light_direction);
+					triTransformed.color = new Color(dp, dp, dp);
 
-				float dp = Math.max(0.1f, MatrixMath.Vector_DotProduct(light_direction, normal));
+					triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(0)), 0);
+					triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(1)), 1);
+					triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(2)), 2);
+					triViewed.color = triTransformed.color;
 
-				triTransformed.color = new Color(dp, dp, dp);
+					Triangle newTri1 = new Triangle();
+					Triangle newTri2 = new Triangle();
+					int loopCounter = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0.0f, 0.0f, 0.2f),
+							new Vertex(0.0f, 0.0f, 1.0f), triViewed, newTri1, newTri2, pressedKey);
 
-				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(0)), 0);
-				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(1)), 1);
-				triViewed.setVertex(MatrixMath.Matrix_MultiplyVector(matView, triTransformed.getVertex(2)), 2);
-				triViewed.color = triTransformed.color;
+					Mesh newTriangles = new Mesh();
+					newTriangles.mesh.add(newTri1);
+					newTriangles.mesh.add(newTri2);
 
-				Triangle newTri1 = new Triangle();
-				Triangle newTri2 = new Triangle();
-				int loopCounter = MatrixMath.Triangle_ClipAgainstPlane(new Vertex(0.0f, 0.0f, 0.2f),
-						new Vertex(0.0f, 0.0f, 1.0f), triViewed, newTri1, newTri2, pressedKey);
+					for (int n = 0; n < loopCounter; n++) {
+						Triangle testTri = new Triangle();
 
-				Mesh newTriangles = new Mesh();
-				newTriangles.mesh.add(newTri1);
-				newTriangles.mesh.add(newTri2);
+						triProjected.setVertex(
+								MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(0)), 0);
+						triProjected.setVertex(
+								MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(1)), 1);
+						triProjected.setVertex(
+								MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(2)), 2);
+						triProjected.color = newTriangles.mesh.get(n).color;
 
-				for (int n = 0; n < loopCounter; n++) {
-					Triangle testTri = new Triangle();
+						triProjected.setVertex(
+								MatrixMath.Vector_Div(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
+						triProjected.setVertex(
+								MatrixMath.Vector_Div(triProjected.getVertex(1), triProjected.getVertex(1).w), 1);
+						triProjected.setVertex(
+								MatrixMath.Vector_Div(triProjected.getVertex(2), triProjected.getVertex(2).w), 2);
 
-					triProjected.setVertex(
-							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(0)), 0);
-					triProjected.setVertex(
-							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(1)), 1);
-					triProjected.setVertex(
-							MatrixMath.Matrix_MultiplyVector(matProj, newTriangles.mesh.get(n).getVertex(2)), 2);
-					triProjected.color = newTriangles.mesh.get(n).color;
+						vOffsetView = new Vertex(1, 1, 0);
+						triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(0), vOffsetView), 0);
+						triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(1), vOffsetView), 1);
+						triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(2), vOffsetView), 2);
 
-					triProjected.setVertex(
-							MatrixMath.Vector_Div(triProjected.getVertex(0), triProjected.getVertex(0).w), 0);
-					triProjected.setVertex(
-							MatrixMath.Vector_Div(triProjected.getVertex(1), triProjected.getVertex(1).w), 1);
-					triProjected.setVertex(
-							MatrixMath.Vector_Div(triProjected.getVertex(2), triProjected.getVertex(2).w), 2);
+						triProjected.getVertex(0).x *= 0.5f * (float) windowWidth;
+						triProjected.getVertex(0).y *= 0.5f * (float) windowHeight;
+						triProjected.getVertex(1).x *= 0.5f * (float) windowWidth;
+						triProjected.getVertex(1).y *= 0.5f * (float) windowHeight;
+						triProjected.getVertex(2).x *= 0.5f * (float) windowWidth;
+						triProjected.getVertex(2).y *= 0.5f * (float) windowHeight;
 
-					vOffsetView = new Vertex(1, 1, 0);
-					triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(0), vOffsetView), 0);
-					triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(1), vOffsetView), 1);
-					triProjected.setVertex(MatrixMath.Vector_Add(triProjected.getVertex(2), vOffsetView), 2);
+						float average = (triProjected.getVertex(0).z + triProjected.getVertex(1).z
+								+ triProjected.getVertex(2).z) / 3.0f;
 
-					triProjected.getVertex(0).x *= 0.5f * (float) windowWidth;
-					triProjected.getVertex(0).y *= 0.5f * (float) windowHeight;
-					triProjected.getVertex(1).x *= 0.5f * (float) windowWidth;
-					triProjected.getVertex(1).y *= 0.5f * (float) windowHeight;
-					triProjected.getVertex(2).x *= 0.5f * (float) windowWidth;
-					triProjected.getVertex(2).y *= 0.5f * (float) windowHeight;
+						while (triangleRasterTree.containsKey(average)) {
+							average += 0.0005f;
+						}
 
-					float average = (triProjected.getVertex(0).z + triProjected.getVertex(1).z
-							+ triProjected.getVertex(2).z) / 3.0f;
+						testTri = clone.deepClone(triProjected);
+						triangleRasterTree.put(average, testTri);
 
-					while (triangleRasterTree.containsKey(average)) {
-						average += 0.0005f;
 					}
-
-					testTri = clone.deepClone(triProjected);
-					triangleRasterTree.put(average, testTri);
-
 				}
 			}
 		}
 
 		int drawingCounter = triangleRasterTree.size();
-
+		System.out.println(drawingCounter);
 		g = bs.getDrawGraphics();
 		g.clearRect(0, 0, windowWidth, windowHeight);
-
+		
 		for (int i = 0; i < drawingCounter; i++) {
 			drawTriangle(triangleRasterTree.pollLastEntry().getValue());
 		}
+
 //		drawVertex(light_direction);
 
 		left = false;
-//		angle1 += 0.01;
-//		angle2 += 0.025;
-//		angle3 += 0.0375;
+		g.setColor(Color.RED);
+		g.drawString(fps, 10, 20);
 
 		bs.show();
 		g.dispose();
@@ -268,11 +274,11 @@ public class Main implements Runnable {
 			vCamera = MatrixMath.Vector_Sub(vCamera, vForward);
 		}
 		if (Event_Listener.left) {
-			fYaw += Math.PI/64;
-			System.out.println(fYaw);
+			fYaw += Math.PI / 64;
+//			System.out.println(fYaw);
 		} else if (Event_Listener.right) {
-			fYaw -= Math.PI/64;
-			System.out.println(fYaw);
+			fYaw -= Math.PI / 64;
+//			System.out.println(fYaw);
 		}
 		if (Event_Listener.shift) {
 			vCamera.y += 0.1f;
@@ -286,19 +292,20 @@ public class Main implements Runnable {
 		}
 		if (Event_Listener.j) {
 			pressedKey = !pressedKey;
-			System.out.println(pressedKey);
+//			System.out.println(pressedKey);
 		}
 	}
 
 	public void startLoop() {
 
-		int fps = 30;
-		double timePerTick = 1000000000 / fps;
+		int desiredFps = 60;
+		double timePerTick = 1000000000 / desiredFps;
 		double delta = 0;
 		long now;
 		long lastTime = System.nanoTime();
 		long timer = 0;
 		long ticks = 0;
+		String fps = "";
 
 		while (running) {
 			now = System.nanoTime();
@@ -308,7 +315,7 @@ public class Main implements Runnable {
 
 			if (delta >= 1) {
 				/////////////////////////////////////
-				render();
+				render(fps);
 				update();
 				/////////////////////////////////////
 				delta--;
@@ -316,9 +323,10 @@ public class Main implements Runnable {
 			}
 			if (timer >= 1000000000) {
 				timer = 0;
-//				System.out.println("Running at: " + ticks + "Ticks per second");
+				fps = Long.toString(ticks);
 				ticks = 0;
 			}
+
 		}
 	}
 

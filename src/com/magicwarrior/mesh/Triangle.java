@@ -45,6 +45,26 @@ public class Triangle {
 	public int getSideNumber() {
 		return sideNumber;
 	}
+	
+	public void changeX(float num) {
+		for(Vertex v : triangle) {
+			v.changeX(num);
+		}
+		
+	}
+
+	public void changeY(float num) {
+		for(Vertex v : triangle) {
+			v.changeY(num);
+		}
+		
+	}
+	public void changeZ(float num) {
+		for(Vertex v : triangle) {
+			v.changeZ(num);
+		}
+		
+	}
 	public void invert() {
 		Vertex[] triTemp = new Vertex[3];
 		triTemp[0] = triangle[2];
